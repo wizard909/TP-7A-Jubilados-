@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: municipio
+      POSTGRES_USER: municipio
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Crear .env desde .env.example}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U municipio -d municipio"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  keycloak-data-init:
+    image: postgres:17-alpine
+    user: "0:0"
+    entrypoint: ["sh", "-c", "chown -R 1000:0 /keycloak-data"]
+    volumes:
+      - kcdata:/keycloak-data
+    restart: "no"
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:?Crear .env desde .env.example}
+      TEST_PASSWORD: ${TEST_PASSWORD:?Crear .env desde .env.example}
+      KC_HOSTNAME: ${KEYCLOAK_PUBLIC_URL:-http://localhost:8180}
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: xforwarded
+      DEMO_HOST: ${DEMO_HOST:-localhost}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://localhost:8080}
+    ports:
+      - "8180:8080"
+    volumes:
+      - ./realm/municipio-realm.json:/opt/keycloak/data/import/municipio-realm.json:ro
+      - ./realm/theme/municipio:/opt/keycloak/themes/municipio:ro
+      - kcdata:/opt/keycloak/data/h2
+    depends_on:
+      keycloak-data-init:
+        condition: service_completed_successfully
+  padron-mock:
+    build:
+      context: .
+      dockerfile: mock/Dockerfile
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://municipio:${POSTGRES_PASSWORD}@db:5432/municipio
+      PADRON_URL: http://padron-mock:8090
+      KEYCLOAK_PUBLIC: ${KEYCLOAK_PUBLIC_URL:-http://localhost:8180}/realms/municipio
+      KEYCLOAK_INTERNAL: http://keycloak:8080/realms/municipio
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://localhost:8080}
+      SESSION_SECRET: ${SESSION_SECRET:?Crear .env desde .env.example}
+      DEMO_IDENTITIES: '{"vecino1":"JUB-001","vecino2":"NO-003","vecino3":"ERR-004"}'
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+      padron-mock:
+        condition: service_started
+volumes:
+  pgdata:
+  kcdata:

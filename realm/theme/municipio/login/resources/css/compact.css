@@ -1,0 +1,12 @@
+* { box-sizing: border-box; }
+body { margin: 0; padding: 1.5rem; color: #171717; background: #f6f7f9; font: 1rem/1.5 system-ui, sans-serif; }
+main, #kc-content, #kc-content-wrapper { max-width: 28rem; margin-inline: auto; }
+#kc-header { max-width: 28rem; margin: 1rem auto; font-size: 1.4rem; font-weight: 700; }
+#kc-form, #kc-info-wrapper { background: #fff; border: 1px solid #d0d5dd; border-radius: .5rem; padding: 1.5rem; }
+label { display: block; margin: 1rem 0 .3rem; font-weight: 600; }
+input[type=text], input[type=password], input[type=email] { width: 100%; min-height: 2.75rem; border: 1px solid #667085; border-radius: .25rem; padding: .5rem; font: inherit; }
+button, input[type=submit] { min-height: 2.75rem; margin-top: 1rem; padding: .5rem 1rem; border: 0; border-radius: .25rem; color: #fff; background: #005fcc; font: inherit; cursor: pointer; }
+button[type=button] { margin: 0; }
+:focus-visible { outline: 3px solid #005fcc; outline-offset: 2px; }
+.alert-error { padding: .75rem; border-left: 4px solid #b42318; background: #fff4f2; }
+@media (max-width: 480px) { body { padding: 1rem; } #kc-form, #kc-info-wrapper { padding: 1rem; } }

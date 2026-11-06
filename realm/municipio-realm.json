@@ -1,0 +1,82 @@
+{
+  "realm": "municipio",
+  "enabled": true,
+  "internationalizationEnabled": true,
+  "supportedLocales": ["es"],
+  "defaultLocale": "es",
+  "loginTheme": "municipio",
+  "roles": {
+    "realm": [
+      {"name": "vecino"},
+      {"name": "agente"}
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "municipio-web",
+      "name": "Portal municipal de beneficios",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:8080/auth/callback", "http://${DEMO_HOST}:8080/auth/callback", "${APP_PUBLIC_URL}/auth/callback"],
+      "webOrigins": ["http://localhost:8080", "http://${DEMO_HOST}:8080", "${APP_PUBLIC_URL}"],
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "audiencia-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "municipio-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "vecino1",
+      "email": "vecino1@example.invalid",
+      "firstName": "Vecino",
+      "lastName": "Uno",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{"type": "password", "value": "${TEST_PASSWORD}", "temporary": false}],
+      "realmRoles": ["vecino"]
+    },
+    {
+      "username": "vecino2",
+      "email": "vecino2@example.invalid",
+      "firstName": "Vecino",
+      "lastName": "Dos",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{"type": "password", "value": "${TEST_PASSWORD}", "temporary": false}],
+      "realmRoles": ["vecino"]
+    },
+    {
+      "username": "agente1",
+      "email": "agente1@example.invalid",
+      "firstName": "Agente",
+      "lastName": "Uno",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{"type": "password", "value": "${TEST_PASSWORD}", "temporary": false}],
+      "realmRoles": ["agente"]
+    },
+    {
+      "username": "vecino3",
+      "email": "vecino3@example.invalid",
+      "firstName": "Vecino",
+      "lastName": "Tres",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{"type": "password", "value": "${TEST_PASSWORD}", "temporary": false}],
+      "realmRoles": ["vecino"]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estado de la solicitud</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 1.5rem auto; padding: 0 1rem; line-height: 1.5; color: #171717; }
+    a, button, textarea { font: inherit; }
+    button, textarea { padding: .6rem; }
+    textarea { display: block; width: 100%; box-sizing: border-box; }
+    :focus-visible { outline: 3px solid #005fcc; outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p><a href="/">Volver</a></p>
+    <h1>Estado de la solicitud</h1>
+    <p>Beneficio: {{ item.beneficio_id }}</p>
+    <p>Estado: <strong>{{ item.estado }}</strong></p>
+    {% if item.motivo %}<p>Motivo: {{ item.motivo }}</p>{% endif %}
+    {% if 'agente' in user.realm_access.roles and item.estado == 'pendiente' %}
+      <h2>Registrar decisión</h2>
+      <form method="post" action="/web/solicitudes/{{ item.id }}/decision">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <label for="motivo">Motivo para el vecino</label>
+        <textarea id="motivo" name="motivo" rows="3" required></textarea>
+        <button type="submit" name="estado" value="aprobada">Aprobar</button>
+        <button type="submit" name="estado" value="rechazada">Rechazar</button>
+      </form>
+    {% endif %}
+  </main>
+</body>
+</html>
