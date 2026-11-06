@@ -54,9 +54,9 @@ Como comprobaciones adicionales, una solicitud de `vecino2` no se puede aprobar 
 
 En el paquete completo, junto a esta carpeta, están:
 
-- [`outputs/openapi.yaml`](../outputs/openapi.yaml): contrato de la API municipal.
-- [`outputs/padron-mock-openapi.yaml`](../outputs/padron-mock-openapi.yaml): contrato del padrón simulado.
-- [`outputs/TP_Arquitectura_Jubilados.docx`](../outputs/TP_Arquitectura_Jubilados.docx): decisiones de arquitectura, diagramas, ADR y evidencia de verificación.
+- [Documento de arquitectura](docs/TP_Arquitectura_Jubilados.docx)
+- [Contrato de la API municipal](docs/openapi.yaml)
+- [Contrato del padrón simulado](docs/padron-mock-openapi.yaml)
 
 La API usa el prefijo `/api/v1`. Las páginas web y la API forman parte de la misma aplicación. El documento explica la correspondencia entre estos servicios, el C4 de Contenedores y las decisiones tomadas.
 
