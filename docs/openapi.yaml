@@ -1,0 +1,259 @@
+openapi: 3.1.0
+info:
+  title: API de beneficios municipales para jubilados
+  version: 1.0.0-draft
+  description: >-
+    Contrato del recorrido mínimo del escenario 7A para la demostración local.
+    La vinculación entre la identidad OIDC y el registro
+    del padrón se configura previamente para los usuarios de prueba.
+servers:
+  - url: http://localhost:8080
+    description: Entorno local de demostración, sujeto a Compose
+tags:
+  - name: Beneficios
+  - name: Solicitudes
+paths:
+  /api/v1/beneficios:
+    get:
+      tags: [Beneficios]
+      summary: Consultar los beneficios disponibles
+      operationId: listarBeneficios
+      security: []
+      responses:
+        '200':
+          description: Catálogo de beneficios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Beneficio'
+  /api/v1/solicitudes:
+    post:
+      tags: [Solicitudes]
+      summary: Presentar una solicitud
+      description: >-
+        Solo el rol vecino jubilado. La identidad y el identificador del padrón
+        se obtienen de la vinculación preconfigurada del usuario autenticado;
+        el cliente no puede elegir la identidad del solicitante.
+      operationId: crearSolicitud
+      security:
+        - oidc: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NuevaSolicitud'
+      responses:
+        '201':
+          description: Solicitud creada en estado pendiente
+          headers:
+            Location:
+              description: URI de la solicitud creada
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Solicitud'
+        '400': { $ref: '#/components/responses/EntradaInvalida' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+    get:
+      tags: [Solicitudes]
+      summary: Consultar solicitudes pendientes para revisión
+      description: Solo el rol agente municipal.
+      operationId: listarSolicitudes
+      security:
+        - oidc: []
+      parameters:
+        - name: estado
+          in: query
+          required: true
+          schema:
+            type: string
+            const: pendiente
+      responses:
+        '200':
+          description: Solicitudes visibles para el agente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Solicitud'
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+  /api/v1/solicitudes/{id}:
+    parameters:
+      - $ref: '#/components/parameters/SolicitudId'
+    get:
+      tags: [Solicitudes]
+      summary: Consultar una solicitud
+      description: >-
+        Un vecino solo puede consultar su propia solicitud; un agente puede
+        consultarla para revisión. La autorización se comprueba en el servidor.
+      operationId: obtenerSolicitud
+      security:
+        - oidc: []
+      responses:
+        '200':
+          description: Solicitud encontrada y visible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Solicitud'
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+    patch:
+      tags: [Solicitudes]
+      summary: Aprobar o rechazar una solicitud pendiente
+      description: >-
+        Solo el rol agente municipal. Para aprobar se consulta el padrón
+        simulado. Si la respuesta es negativa o la solicitud ya fue decidida,
+        no se cambia el estado. Si el padrón no responde, la solicitud queda
+        pendiente.
+      operationId: decidirSolicitud
+      security:
+        - oidc: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionSolicitud'
+      responses:
+        '200':
+          description: Solicitud actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Solicitud'
+        '400': { $ref: '#/components/responses/EntradaInvalida' }
+        '401': { $ref: '#/components/responses/NoAutenticado' }
+        '403': { $ref: '#/components/responses/Prohibido' }
+        '404': { $ref: '#/components/responses/NoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflicto' }
+        '503': { $ref: '#/components/responses/PadronNoDisponible' }
+components:
+  securitySchemes:
+    oidc:
+      type: openIdConnect
+      description: >-
+        URL de descubrimiento del proveedor OIDC local de la demo. La aplicación
+        municipal valida emisor, audiencia, firma y vencimiento del access token.
+      openIdConnectUrl: http://localhost:8180/realms/municipio/.well-known/openid-configuration
+  parameters:
+    SolicitudId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    Beneficio:
+      type: object
+      required: [id, nombre]
+      properties:
+        id:
+          type: string
+          examples: [tarifa-social]
+        nombre:
+          type: string
+          examples: [Tarifa social]
+    NuevaSolicitud:
+      type: object
+      additionalProperties: false
+      required: [beneficioId]
+      properties:
+        beneficioId:
+          type: string
+          examples: [tarifa-social]
+    EstadoSolicitud:
+      type: string
+      enum: [pendiente, aprobada, rechazada]
+    DecisionSolicitud:
+      type: object
+      additionalProperties: false
+      required: [estado, motivo]
+      properties:
+        estado:
+          type: string
+          enum: [aprobada, rechazada]
+        motivo:
+          type: string
+          minLength: 1
+          description: Mensaje comprensible para el vecino
+    Solicitud:
+      type: object
+      required: [id, beneficioId, solicitanteId, estado, creadaEn]
+      properties:
+        id:
+          type: string
+          format: uuid
+        beneficioId:
+          type: string
+        solicitanteId:
+          type: string
+          description: Referencia al usuario autenticado, no al identificador del padrón
+        estado:
+          $ref: '#/components/schemas/EstadoSolicitud'
+        creadaEn:
+          type: string
+          format: date-time
+        resueltaEn:
+          type: [string, 'null']
+          format: date-time
+        motivo:
+          type: [string, 'null']
+    Problem:
+      type: object
+      description: Error con formato Problem Details RFC 9457
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          default: about:blank
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+  responses:
+    EntradaInvalida:
+      description: Datos de entrada inválidos
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NoAutenticado:
+      description: Falta autenticación válida
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Prohibido:
+      description: Identidad autenticada sin permiso para esta operación
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    NoEncontrado:
+      description: Solicitud inexistente
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    Conflicto:
+      description: La solicitud ya fue decidida o la condición del padrón no permite aprobar
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    PadronNoDisponible:
+      description: El padrón no respondió; la solicitud permanece pendiente
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }

@@ -1,0 +1,86 @@
+openapi: 3.1.0
+info:
+  title: Contrato del padrón nacional simulado
+  version: 1.0.0-draft
+  description: >-
+    Simulación local para el escenario 7A. Los identificadores de ejemplo no
+    representan personas reales. Una condición negativa es una respuesta de
+    negocio válida; una falla técnica se informa por separado.
+servers:
+  - url: http://padron-mock:8090
+    description: Nombre interno previsto para la red de Compose
+paths:
+  /verificaciones:
+    post:
+      summary: Verificar la condición de jubilado o pensionado
+      operationId: verificarCondicion
+      description: >-
+        La aplicación municipal envía el identificador asociado previamente al
+        usuario autenticado. El navegador no llama directamente a este mock.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsultaPadron'
+      responses:
+        '200':
+          description: Consulta realizada, incluso cuando la persona no figura en el padrón
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultadoPadron'
+              examples:
+                registrado:
+                  value:
+                    condicion: jubilado
+                noRegistrado:
+                  value:
+                    condicion: no_registrado
+        '400':
+          description: Identificador ausente o inválido
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Padrón temporalmente no disponible
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+components:
+  schemas:
+    ConsultaPadron:
+      type: object
+      additionalProperties: false
+      required: [identificador]
+      properties:
+        identificador:
+          type: string
+          minLength: 1
+          description: Identificador ficticio asociado al usuario de prueba
+          examples: [JUB-001]
+    ResultadoPadron:
+      type: object
+      additionalProperties: false
+      required: [condicion]
+      properties:
+        condicion:
+          type: string
+          enum: [jubilado, pensionado, no_registrado]
+    Problem:
+      type: object
+      description: Error técnico con formato Problem Details RFC 9457
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri-reference
+          default: about:blank
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
