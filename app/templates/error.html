@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} | Beneficios municipales{% endblock %}
+{% block content %}
+  <section class="error-panel" aria-labelledby="error-titulo">
+    <h1 id="error-titulo" tabindex="-1" autofocus aria-describedby="error-detalle">{{ title }}</h1>
+    <p id="error-detalle">{{ detail }}</p>
+    {% if show_login %}
+      <a class="button button-primary" href="/login">Iniciar sesión</a>
+    {% else %}
+      <a class="button button-secondary" href="/">Volver al portal</a>
+    {% endif %}
+  </section>
+{% endblock %}

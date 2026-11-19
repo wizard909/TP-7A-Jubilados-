@@ -1,34 +1,57 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Estado de la solicitud</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 1.5rem auto; padding: 0 1rem; line-height: 1.5; color: #171717; }
-    a, button, textarea { font: inherit; }
-    button, textarea { padding: .6rem; }
-    textarea { display: block; width: 100%; box-sizing: border-box; }
-    :focus-visible { outline: 3px solid #005fcc; outline-offset: 2px; }
-  </style>
-</head>
-<body>
-  <main>
-    <p><a href="/">Volver</a></p>
-    <h1>Estado de la solicitud</h1>
-    <p>Beneficio: {{ item.beneficio_id }}</p>
-    <p>Estado: <strong>{{ item.estado }}</strong></p>
-    {% if item.motivo %}<p>Motivo: {{ item.motivo }}</p>{% endif %}
-    {% if 'agente' in user.realm_access.roles and item.estado == 'pendiente' %}
-      <h2>Registrar decisión</h2>
-      <form method="post" action="/web/solicitudes/{{ item.id }}/decision">
-        <input type="hidden" name="csrf" value="{{ csrf }}">
-        <label for="motivo">Motivo para el vecino</label>
-        <textarea id="motivo" name="motivo" rows="3" required></textarea>
-        <button type="submit" name="estado" value="aprobada">Aprobar</button>
-        <button type="submit" name="estado" value="rechazada">Rechazar</button>
-      </form>
+{% extends "base.html" %}
+{% from "components.html" import status_badge, date_label %}
+{% set is_agent = 'agente' in user.realm_access.get('roles', []) %}
+{% block title %}{% if decision_error %}No se registró la decisión{% else %}Solicitud {{ item.estado }}{% endif %} | {{ item.beneficio_id | benefit_name }} | Beneficios municipales{% endblock %}
+
+{% block content %}
+  <a class="back-link" href="/"><span aria-hidden="true">←</span> {{ 'Volver a solicitudes pendientes' if is_agent else 'Volver a mis beneficios' }}</a>
+  {% if decision_error %}
+    <section class="error-panel" aria-labelledby="error-titulo">
+      <h1 id="error-titulo" tabindex="-1" autofocus aria-describedby="error-detalle">No se registró la decisión</h1>
+      <p id="error-detalle">{{ decision_error }}</p>
+    </section>
+  {% endif %}
+
+  <div class="detail-layout">
+    <section class="panel detail-summary" aria-labelledby="beneficio">
+      <p class="context-label">{{ 'Revisión de solicitud' if is_agent and item.estado == 'pendiente' else 'Detalle de la solicitud' }}</p>
+      {% if decision_error %}
+        <h2 class="detail-title" id="beneficio">{{ item.beneficio_id | benefit_name }}</h2>
+      {% else %}
+        <h1 id="beneficio">{{ item.beneficio_id | benefit_name }}</h1>
+      {% endif %}
+      <dl class="detail-facts">
+        <div><dt>Estado</dt><dd>{{ status_badge(item.estado) }}</dd></div>
+        <div><dt>Fecha de presentación</dt><dd>{{ date_label(item.creada_en) }}</dd></div>
+        {% if is_agent %}<div><dt>Solicitante</dt><dd>{{ item.solicitante_nombre }}</dd></div>{% endif %}
+        {% if item.resuelta_en %}<div><dt>Fecha de resolución</dt><dd>{{ date_label(item.resuelta_en) }}</dd></div>{% endif %}
+      </dl>
+      {% if item.estado == 'pendiente' and not is_agent %}
+        <p class="notice">Recibimos tu solicitud. El municipio la va a revisar y vas a poder consultar el resultado acá.</p>
+      {% endif %}
+      {% if item.motivo %}
+        <div class="notice resolution">
+          {% if decision_error %}<h3>Motivo de la resolución</h3>{% else %}<h2>Motivo de la resolución</h2>{% endif %}
+          <p>{{ item.motivo }}</p>
+        </div>
+      {% endif %}
+    </section>
+
+    {% if is_agent and item.estado == 'pendiente' %}
+      <section class="panel form-panel decision" aria-labelledby="decision">
+        <h2 id="decision">Registrar decisión</h2>
+        <p>Al aprobar, el sistema verifica la condición de la persona en el padrón.</p>
+        <form method="post" action="/web/solicitudes/{{ item.id }}/decision">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <label class="field-label" for="motivo">Motivo para el vecino <span class="required-note">(obligatorio)</span></label>
+          <p class="field-help" id="motivo-ayuda">Explicá la decisión en un máximo de 500 caracteres. La persona va a leer este mensaje.</p>
+          <textarea id="motivo" name="motivo" rows="4" maxlength="500" required aria-describedby="motivo-ayuda">{{ submitted_reason | default('') }}</textarea>
+          <div class="decision-actions">
+            <button class="button button-primary" type="submit" name="estado" value="aprobada">Aprobar solicitud</button>
+            <button class="button button-danger" type="submit" name="estado" value="rechazada">Rechazar solicitud</button>
+          </div>
+        </form>
+      </section>
     {% endif %}
-  </main>
-</body>
-</html>
+  </div>
+{% endblock %}

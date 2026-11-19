@@ -50,5 +50,11 @@ client['redirectUris'] = list(dict.fromkeys(client.get('redirectUris', []) + [
 client['webOrigins'] = list(dict.fromkeys(client.get('webOrigins', []) + [
     'http://localhost:8080', f'http://{demo_host}:8080', app_public_url,
 ]))
+key = 'post.logout.redirect.uris'
+attributes = client.setdefault('attributes', {})
+previous = attributes.get(key, '').split('##')
+attributes[key] = '##'.join(dict.fromkeys(filter(None, previous + [
+    'http://localhost:8080/', f'http://{demo_host}:8080/', f'{app_public_url}/',
+])))
 request('PUT', f"{base}/admin/realms/municipio/clients/{client['id']}", client, token=token)
 print('Realm municipio: idioma, tema y dirección de demo aplicados.')

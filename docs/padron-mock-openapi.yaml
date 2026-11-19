@@ -59,6 +59,7 @@ components:
         identificador:
           type: string
           minLength: 1
+          pattern: '\S'
           description: Identificador ficticio asociado al usuario de prueba
           examples: [JUB-001]
     ResultadoPadron:

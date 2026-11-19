@@ -32,7 +32,7 @@ services:
       DEMO_HOST: ${DEMO_HOST:-localhost}
       APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://localhost:8080}
     ports:
-      - "8180:8080"
+      - "127.0.0.1:8180:8080"
     volumes:
       - ./realm/municipio-realm.json:/opt/keycloak/data/import/municipio-realm.json:ro
       - ./realm/theme/municipio:/opt/keycloak/themes/municipio:ro
@@ -55,7 +55,7 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:?Crear .env desde .env.example}
       DEMO_IDENTITIES: '{"vecino1":"JUB-001","vecino2":"NO-003","vecino3":"ERR-004"}'
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     depends_on:
       db:
         condition: service_healthy

@@ -60,6 +60,7 @@ paths:
         '400': { $ref: '#/components/responses/EntradaInvalida' }
         '401': { $ref: '#/components/responses/NoAutenticado' }
         '403': { $ref: '#/components/responses/Prohibido' }
+        '409': { $ref: '#/components/responses/Conflicto' }
     get:
       tags: [Solicitudes]
       summary: Consultar solicitudes pendientes para revisión
@@ -83,6 +84,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Solicitud'
+        '400': { $ref: '#/components/responses/EntradaInvalida' }
         '401': { $ref: '#/components/responses/NoAutenticado' }
         '403': { $ref: '#/components/responses/Prohibido' }
   /api/v1/solicitudes/{id}:

@@ -1,43 +1,88 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Beneficios municipales</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 42rem; margin: 1.5rem auto; padding: 0 1rem; line-height: 1.5; color: #171717; }
-    a, button, select, input { font: inherit; }
-    button, select, input { padding: .6rem; }
-    button { cursor: pointer; }
-    :focus-visible { outline: 3px solid #005fcc; outline-offset: 2px; }
-    li { margin: .6rem 0; }
-    label { display: block; margin: .7rem 0 .25rem; }
-  </style>
-</head>
-<body>
-  <header><h1>Beneficios municipales</h1></header>
+{% extends "base.html" %}
+{% from "components.html" import status_badge, date_label %}
+{% set roles = user.realm_access.get('roles', []) if user else [] %}
+{% set is_agent = 'agente' in roles %}
+{% block title %}{% if user %}{{ 'Solicitudes pendientes' if is_agent else 'Mis beneficios' }} | Beneficios municipales{% else %}Beneficios municipales para personas jubiladas{% endif %}{% endblock %}
+
+{% block content %}
   {% if not user %}
-    <p>Solicitá y consultá beneficios sin ir a una oficina.</p>
-    <p><a href="/login">Iniciar sesión</a></p>
+    <section class="welcome">
+      <div class="welcome-content">
+        <h1>Beneficios municipales para personas jubiladas</h1>
+        <p>Pedí un beneficio y consultá el estado de tu solicitud desde este portal.</p>
+        <a class="button button-primary" href="/login">Iniciar sesión</a>
+      </div>
+      <div class="welcome-art" aria-hidden="true"><span class="municipal-mark"></span></div>
+    </section>
+
+    <section class="public-benefits" aria-labelledby="beneficios">
+      <h2 id="beneficios">Beneficios disponibles</h2>
+      <ul class="benefit-list" role="list">
+        {% for benefit in benefits %}
+          <li class="panel public-benefit"><h3>{{ benefit.nombre }}</h3></li>
+        {% endfor %}
+      </ul>
+    </section>
   {% else %}
-    <p>Sesión de {{ user.preferred_username }}. <a href="/logout">Salir</a></p>
-    {% if 'vecino' in user.realm_access.roles %}
-      <h2>Nueva solicitud</h2>
-      <form method="post" action="/web/solicitudes">
-        <input type="hidden" name="csrf" value="{{ csrf }}">
-        <label for="beneficio">Beneficio</label>
-        <select id="beneficio" name="beneficio" required>
-          {% for b in benefits %}<option value="{{ b.id }}">{{ b.nombre }}</option>{% endfor %}
-        </select>
-        <button type="submit">Presentar solicitud</button>
-      </form>
-      <h2>Mis solicitudes</h2>
-    {% else %}
-      <h2>Solicitudes pendientes</h2>
-    {% endif %}
-    {% if items %}
-      <ul>{% for item in items %}<li><a href="/web/solicitudes/{{ item.id }}">{{ item.beneficio_id }} — {{ item.estado }}</a></li>{% endfor %}</ul>
-    {% else %}<p>No hay solicitudes para mostrar.</p>{% endif %}
+    <section class="page-intro">
+      {% if is_agent %}
+        <h1>Solicitudes pendientes</h1>
+        <p>Elegí una solicitud para revisar el beneficio pedido y registrar una decisión.</p>
+      {% else %}
+        <h1>Mis beneficios</h1>
+        <p>Presentá una solicitud o consultá en qué estado está.</p>
+      {% endif %}
+    </section>
+
+    <div class="{{ 'queue' if is_agent else 'dashboard' }}">
+      {% if 'vecino' in roles %}
+        <section class="panel form-panel" aria-labelledby="nueva">
+          <h2 id="nueva">Nueva solicitud</h2>
+          <p>Elegí el beneficio que querés pedir.</p>
+          <form method="post" action="/web/solicitudes">
+            <input type="hidden" name="csrf" value="{{ csrf }}">
+            <fieldset>
+              <legend>Beneficio <span class="required-note">(obligatorio)</span></legend>
+              {% for benefit in benefits %}
+                <label class="choice">
+                  <input type="radio" name="beneficio" value="{{ benefit.id }}" required>
+                  <span>{{ benefit.nombre }}</span>
+                </label>
+              {% endfor %}
+            </fieldset>
+            <button class="button button-primary" type="submit">Presentar solicitud</button>
+          </form>
+        </section>
+      {% endif %}
+
+      <section class="requests" aria-labelledby="solicitudes">
+        <h2 id="solicitudes">{{ 'Para revisar' if is_agent else 'Mis solicitudes' }}</h2>
+        {% if items %}
+          <ul class="request-list" role="list">
+            {% for item in items %}
+              <li class="panel request-card">
+                <div class="card-heading">
+                  <h3 id="beneficio-{{ item.id }}">{{ item.beneficio_id | benefit_name }}</h3>
+                  {{ status_badge(item.estado, 'estado-' ~ item.id) }}
+                </div>
+                <div class="card-details">
+                  <div class="card-meta" id="datos-{{ item.id }}">
+                    {% if is_agent %}<span>Solicitante: <b>{{ item.solicitante_nombre }}</b></span>{% endif %}
+                    <span>Presentada el {{ date_label(item.creada_en) }}</span>
+                  </div>
+                  <a class="button button-secondary" href="/web/solicitudes/{{ item.id }}"
+                     id="accion-{{ item.id }}" aria-labelledby="accion-{{ item.id }} beneficio-{{ item.id }} estado-{{ item.id }}"
+                     aria-describedby="datos-{{ item.id }}">{{ 'Revisar solicitud' if is_agent else 'Ver detalle' }} <span aria-hidden="true">→</span></a>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="panel empty">
+            <p>{{ 'Por ahora no hay solicitudes pendientes.' if is_agent else 'Todavía no presentaste ninguna solicitud.' }}</p>
+          </div>
+        {% endif %}
+      </section>
+    </div>
   {% endif %}
-</body>
-</html>
+{% endblock %}

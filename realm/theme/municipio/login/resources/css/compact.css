@@ -1,12 +1,167 @@
 * { box-sizing: border-box; }
 body { margin: 0; padding: 1.5rem; color: #171717; background: #f6f7f9; font: 1rem/1.5 system-ui, sans-serif; }
-main, #kc-content, #kc-content-wrapper { max-width: 28rem; margin-inline: auto; }
+#kc-content, #kc-content-wrapper { max-width: 28rem; margin-inline: auto; }
 #kc-header { max-width: 28rem; margin: 1rem auto; font-size: 1.4rem; font-weight: 700; }
 #kc-form, #kc-info-wrapper { background: #fff; border: 1px solid #d0d5dd; border-radius: .5rem; padding: 1.5rem; }
 label { display: block; margin: 1rem 0 .3rem; font-weight: 600; }
 input[type=text], input[type=password], input[type=email] { width: 100%; min-height: 2.75rem; border: 1px solid #667085; border-radius: .25rem; padding: .5rem; font: inherit; }
 button, input[type=submit] { min-height: 2.75rem; margin-top: 1rem; padding: .5rem 1rem; border: 0; border-radius: .25rem; color: #fff; background: #005fcc; font: inherit; cursor: pointer; }
 button[type=button] { margin: 0; }
+button[type=button][aria-label]::after { content: attr(aria-label); }
 :focus-visible { outline: 3px solid #005fcc; outline-offset: 2px; }
 .alert-error { padding: .75rem; border-left: 4px solid #b42318; background: #fff4f2; }
 @media (max-width: 480px) { body { padding: 1rem; } #kc-form, #kc-info-wrapper { padding: 1rem; } }
+
+/* The sign-in card uses the portal palette and system font stack. */
+.municipal-login {
+  --ink: #132c3c;
+  --muted: #415563;
+  --navy: #102b3c;
+  --teal: #075b51;
+  --teal-dark: #03483f;
+  --canvas: #f4f7f8;
+  --line: #d4dfe3;
+  --field: #637783;
+  --focus: #1559ad;
+  --card-padding: 1.125rem;
+  display: flex;
+  min-height: calc(100vh - 2rem);
+  color: var(--ink);
+  background: var(--canvas);
+  font: 1.125rem/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  overflow-wrap: break-word;
+}
+
+body[data-page-id="login-login"] { padding: 1rem 0.75rem; background: #f4f7f8; }
+
+.municipal-login main {
+  width: 100%;
+  max-width: 30rem;
+  margin: auto;
+  padding-bottom: var(--card-padding);
+  border: 1px solid var(--line);
+  border-radius: 0.875rem;
+  background: #fff;
+}
+
+.municipal-login #kc-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: none;
+  margin: 0;
+  padding: var(--card-padding);
+  border-bottom: 4px solid #60c3ad;
+  border-radius: 0.8rem 0.8rem 0 0;
+  background: var(--navy);
+  color: #fff;
+  font-size: inherit;
+}
+
+.municipal-brand h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}
+
+.municipal-brand p {
+  margin: 0.3rem 0 0;
+  color: #d4e4ea;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.municipal-mark {
+  position: relative;
+  flex: 0 0 2.25em;
+  height: 2.25em;
+  border-radius: 0.45em;
+  background:
+    linear-gradient(currentColor, currentColor) center 65% / 0.16em 0.65em no-repeat,
+    linear-gradient(currentColor, currentColor) 28% 65% / 0.16em 0.65em no-repeat,
+    linear-gradient(currentColor, currentColor) 72% 65% / 0.16em 0.65em no-repeat,
+    linear-gradient(currentColor, currentColor) center 82% / 1.5em 0.12em no-repeat,
+    #146156;
+}
+
+.municipal-mark::before {
+  position: absolute;
+  top: 18%;
+  left: 20%;
+  border-right: 0.675em solid transparent;
+  border-left: 0.675em solid transparent;
+  border-bottom: 0.45em solid currentColor;
+  content: "";
+}
+
+.municipal-login .municipal-context,
+.municipal-login #kc-content { padding: 0 var(--card-padding); }
+
+.municipal-login .municipal-context { margin: var(--card-padding) 0 0.75rem; }
+.municipal-login #kc-content,
+.municipal-login #kc-content-wrapper { max-width: none; }
+
+.municipal-login #kc-page-title { margin: 0; font-size: 1.25rem; line-height: 1.25; }
+.municipal-login a { color: var(--teal-dark); text-underline-offset: 0.18em; }
+.municipal-login .municipal-account { margin: 0; font-weight: 700; }
+.municipal-login .municipal-account > span:first-child { color: var(--muted); font-weight: 500; }
+.municipal-login #reset-login { display: inline-flex; align-items: center; min-height: 2.75rem; }
+.municipal-login #kc-form { padding: 0; border: 0; background: transparent; }
+
+.municipal-login label { margin: 0.85rem 0 0.3rem; font-weight: 700; }
+.municipal-login input[type="text"],
+.municipal-login input[type="password"],
+.municipal-login input[type="email"] {
+  min-height: 3rem;
+  padding: 0.55rem 0.65rem;
+  border-color: var(--field);
+  border-radius: 0.55rem;
+  background: #fff;
+  color: var(--ink);
+}
+
+.municipal-login [data-password-toggle],
+.municipal-login #kc-login {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.55rem 0.75rem;
+  border: 2px solid transparent;
+  border-radius: 0.55rem;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.municipal-login [data-password-toggle] {
+  margin-top: 0.55rem;
+  border-color: #4f8880;
+  background: #fff;
+  color: var(--teal-dark);
+}
+
+.municipal-login [data-password-toggle]:hover { background: #eaf6f1; }
+.municipal-login #kc-login { background: var(--teal); }
+.municipal-login #kc-login:hover { background: var(--teal-dark); }
+
+.municipal-login .alert-warning,
+.municipal-login .alert-info {
+  padding: 0.65rem 0.8rem;
+  border-left: 4px solid #398879;
+  border-radius: 0.3rem;
+  background: #edf6f3;
+}
+
+.municipal-login #input-error {
+  display: block;
+  margin-top: 0.4rem;
+  color: #84272c;
+  font-weight: 600;
+}
+
+.municipal-login input[aria-invalid="true"] { border-color: #a84a50; }
+.municipal-login :focus { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+@media (min-width: 32em) {
+  .municipal-login { --card-padding: 1.75rem; }
+}

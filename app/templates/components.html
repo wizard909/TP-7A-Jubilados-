@@ -1,0 +1,16 @@
+{% macro status_badge(state, label_id=None) -%}
+  {% set id_attr = {'id': label_id} if label_id else {} %}
+  {% if state == 'pendiente' %}
+    <strong{{ id_attr | xmlattr }} class="status status-pending" data-estado="pendiente">Pendiente</strong>
+  {% elif state == 'aprobada' %}
+    <strong{{ id_attr | xmlattr }} class="status status-approved" data-estado="aprobada">Aprobada</strong>
+  {% elif state == 'rechazada' %}
+    <strong{{ id_attr | xmlattr }} class="status status-rejected" data-estado="rechazada">Rechazada</strong>
+  {% else %}
+    <strong{{ id_attr | xmlattr }} class="status" data-estado="{{ state }}">{{ state | capitalize }}</strong>
+  {% endif %}
+{%- endmacro %}
+
+{% macro date_label(value) -%}
+  <time datetime="{{ value.isoformat() }}">{{ value | portal_date }}</time>
+{%- endmacro %}
